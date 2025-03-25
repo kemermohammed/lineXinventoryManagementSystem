@@ -6,12 +6,12 @@ const path = require('path');
 exports.createProduct = async (req, res) => {
     try {
       const { productName, productType } = req.body;
-      const productImage = req.file.path;
+    //   const productImage = req.file.path;
   
       const newProduct = new Product({
         productName,
         productType,
-        productImage,
+        // productImage,
       });
   
       await newProduct.save();
