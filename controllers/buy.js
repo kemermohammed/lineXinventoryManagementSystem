@@ -1,5 +1,6 @@
 const Buy = require("../models/buy");
 const Product = require("../models/product");
+const Inventory = require("../models/inventory");
 
 exports.buyProduct = async (req, res) => {
   try {
@@ -28,15 +29,39 @@ exports.buyProduct = async (req, res) => {
 
     await newPurchase.save();
 
+    // Update inventory stock
+    let inventory = await Inventory.findOne({ product: productId });
+    
+    if (!inventory) {
+      // Create new inventory record if it doesn't exist
+      inventory = new Inventory({
+        product: productId,
+        stock: amount
+      });
+    } else {
+      // Update existing inventory
+      inventory.stock += amount;
+    }
+    
+    inventory.lastUpdated = new Date();
+    await inventory.save();
+
     res.status(201).json({
       message: "Product purchased successfully",
       purchase: newPurchase,
+      inventory: {
+        product: productId,
+        stock: inventory.stock,
+        lastUpdated: inventory.lastUpdated
+      }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 
 exports.getPurchases = async (req, res) => {
